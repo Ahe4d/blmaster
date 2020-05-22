@@ -1,8 +1,37 @@
 {
   "dependencies": {
+    "bcrypt": "^3.0.6",
     "koa": "^2.2.0",
     "koa-body": "^2.1.0",
+    "koa-json": "^2.0.2",
     "koa-logger": "^3.0.0",
-    "koa-router": "^7.2.0"
-  }
+    "koa-router": "^7.2.0",
+    "mongoose": "^5.9.15",
+    "mongoose-auto-increment": "^5.0.1",
+    "nodemon": "^2.0.4"
+  },
+  "scripts": {
+    "start": "nodemon server.js"
+  },
+  "name": "blmaster",
+  "version": "0.1.0",
+  "description": "Blockauth Master Server, based off Port's blmaster",
+  "main": "server.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ahe4d/blmaster.git"
+  },
+  "keywords": [
+    "blockland",
+    "blockauth",
+    "node",
+    "koa"
+  ],
+  "author": "Ahe4d",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Ahe4d/blmaster/issues"
+  },
+  "homepage": "https://github.com/Ahe4d/blmaster#readme"
 }
