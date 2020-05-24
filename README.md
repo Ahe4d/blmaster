@@ -1,5 +1,5 @@
 # Blockauth Master Server
-Based off [Port's blmaster](https://github.com/Electrk/blmaster). 
+Recreation of the Blockland master server used in [Blockauth](http://blockauth.aheadbl.com). Based off [Port's blmaster](https://github.com/Electrk/blmaster). 
 
 ## Features
 
