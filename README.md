@@ -9,4 +9,9 @@ Based off [Port's blmaster](https://github.com/Electrk/blmaster).
 * JSON api
 
 ## Running
-Set the `MONGO` environment variable to something like `db.aheadbl.com:31572/blockauth`, and do `npm start`.
+Make sure you're running Node.js 12 or later, and have a MongoDB server running somewhere.
+
+Set the `MONGO` environment variable to something like `db.aheadbl.com:31572/blockauth`, install packages, and do `npm start`.
+
+## Contributing
+Feel free to clone & send a pull request if you have any changes to make. If you've found any issues, report them [here.](/issues)
