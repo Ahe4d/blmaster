@@ -1,5 +1,12 @@
 'use strict'
 
+////////////////////////////
+// Blockauth Master Server
+// by Ahead
+//
+// based off Port's BLMaster
+////////////////////////////
+
 const json = require('koa-json')
 const Koa = require('koa')
 const BLServer = require('./models/BLServer.js')
@@ -21,6 +28,7 @@ mongoose.connect('mongodb://' + process.env.MONGO, { useNewUrlParser: true, useU
 	.catch((err) => console.log(err));
 
 const SERVER_TIMEOUT_MSEC = 10 * 60 * 1000
+const port = process.env.PORT || 3001;
 
 const LIST_PREFIX = 'FIELDS\tIP\tPORT\tPASSWORDED\tDEDICATED\tVERSION\tSERVERNAME\tPLAYERS\tMAXPLAYERS\tMAPNAME\tBRICKCOUNT\r\nSTART\r\n'
 const LIST_SUFFIX = 'END\r\n'
@@ -43,6 +51,7 @@ function wrapCall(requestCreator) {
 	}
 }
 
+// plain HTML listing of the master server, this is to be used by the blockauth client
 router.get('/index.php', ctx => {
 	const list = servers.map(server =>
 		server.ip + '\t' +
@@ -58,31 +67,32 @@ router.get('/index.php', ctx => {
 	ctx.body = LIST_PREFIX + list + LIST_SUFFIX
 })
 
+// returns a json listing of the master server VIA database, useful as an API (may be used in the frontend soon!)
 router.get('/json', async (ctx) => {
-	return new Promise(function(resolve, reject) {
+	return new Promise(function (resolve, reject) {
 		BLServer.find()
-		.lean()
-		.select('-_id')
-		.then(res => {
-			ctx.body = {servers: res}
-			console.log(res)
-			resolve();
-		})
-		.catch(err => {
-			throw err;
-		})
+			.lean()
+			.select('-_id')
+			.select('-__v')
+			.then(res => {
+				ctx.body = { servers: res }
+				resolve();
+			})
+			.catch(err => {
+				throw err;
+			})
 	})
 })
 
+// this is where the blockauth client posts to list their server
 router.post('/postServer.php', koaBody, wrapCall((ctx) => {
 	var ipAddr = ctx.request.headers["x-forwarded-for"];
 	if (ipAddr) {
 		var list = ipAddr.split(",");
 		ipAddr = list[list.length - 1];
-	} else {
+	} else
 		ipAddr = ctx.request.ip;
-	}
-	console.log(ctx.request.body)
+
 	let ip = ipAddr;
 	let port = parseInt(ctx.request.body.Port, 10)
 	let blid = parseInt(ctx.request.body.blid, 10)
@@ -102,23 +112,24 @@ router.post('/postServer.php', koaBody, wrapCall((ctx) => {
 	if (Number.isNaN(players) || players < 0) players = 0
 	if (Number.isNaN(maxplayers) || maxplayers < 0) maxplayers = 0
 	if (Number.isNaN(brickcount) || brickcount < 0) brickcount = 0
-	User.findOne({ id: blid }, function (err, res) {
-		if (err || !res) {
-			return ctx.body = 'FAIL invalid blid\r\n';
-		}
-		host = res.username
 
-		let serverhost;
-		if (host.endsWith('s')) { serverhost = host + '\'' } else { serverhost = host + '\'s' }
+	// process for checking for the server host on the blockauth database and setting the server name appropriately
+	User.findOne({ id: blid }, function (err, res) {
+		if (err || !res)
+			// if they aren't a real user then kick them out
+			return ctx.body = 'FAIL invalid blid\r\n';
+
+		// little specialization for the server host's name if their name ends with the letter S
+		host = res.username
+		let serverhost = (host.endsWith('s')) ? host + '\'' : host + '\'s';
 		servername = `[v${ver}] ${serverhost} ${servername}`
-		// TODO: verify auth, get name (?)
 
 		let server = servers.find(candidate =>
 			candidate.ip === ip && candidate.port === candidate.port)
 
-		if (server) {
+		if (server)
 			clearTimeout(server.timeout)
-		} else {
+		else {
 			server = {
 				ip,
 				port,
@@ -142,14 +153,14 @@ router.post('/postServer.php', koaBody, wrapCall((ctx) => {
 			message: "Successfully posted server!"
 		})
 	})
-	// console.log(validateBLID(blid));
-	
+
 	// FAIL <text>
 	// MMTOK <token>
 	// MATCHMAKER <ip>
 	// NOTE <text>
 }))
 
+// removes a server from the master server listing and database after the amount of time set in SERVER_TIMEOUT_MSEC
 function serverTimeout(server) {
 	const index = servers.indexOf(server)
 	if (index === -1) return
@@ -157,15 +168,9 @@ function serverTimeout(server) {
 	// swap-and-pop
 	servers[index] = servers[servers.length - 1]
 	servers.pop()
-	BLServer.remove({servername: servers[index].servername})
-}
-
-function validateBLID(blid) {
-	let person = User.findOne({ id: blid })
-	return person;
+	BLServer.remove({ servername: servers[index].servername })
 }
 
 app.use(logger())
-var port = process.env.PORT || 3001;
 app.use(router.routes())
 app.listen(port);
