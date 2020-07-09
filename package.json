@@ -14,7 +14,7 @@
     "start": "nodemon server.js"
   },
   "name": "blmaster",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Blockauth Master Server, based off Port's blmaster",
   "main": "server.js",
   "devDependencies": {},
